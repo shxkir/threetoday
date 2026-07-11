@@ -56,6 +56,11 @@ HTML_PAGE = r"""<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ThreeToday — Lock in three things you can finish</title>
   <meta name="description" content="Paste your brain dump. ThreeToday turns chaos into exactly three finishable outcomes for today." />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta property="og:title" content="ThreeToday — Lock three things you can finish" />
+  <meta property="og:description" content="AI daily focus planner on Amazon Bedrock. Dump the chaos. Get three outcomes." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233dffa8'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-size='36' font-family='system-ui' font-weight='700' fill='%23062316'%3E3%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -108,7 +113,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     .brand {
@@ -142,6 +147,13 @@ HTML_PAGE = r"""<!DOCTYPE html>
       margin-top: 2px;
     }
 
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
     .badge {
       font-family: var(--mono);
       font-size: 0.72rem;
@@ -153,6 +165,49 @@ HTML_PAGE = r"""<!DOCTYPE html>
       white-space: nowrap;
     }
 
+    .badge-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 999px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .badge-link:hover { color: var(--text); border-color: var(--border-strong); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .step {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .step-n {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .step-t { font-size: 0.82rem; color: var(--text-muted); line-height: 1.35; }
+    .step-t strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 2px; }
+
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -160,6 +215,79 @@ HTML_PAGE = r"""<!DOCTYPE html>
       padding: 22px;
       box-shadow: var(--shadow);
       margin-bottom: 18px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .char-count {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .budget-bar {
+      margin-top: 14px;
+      height: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .budget-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #1ecf88, var(--accent));
+      border-radius: 999px;
+      transition: width 0.45s ease;
+    }
+    .budget-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elevated);
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: var(--text-dim);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #results.show .card { animation: fadeUp 0.35s ease both; }
+    #results.show .card:nth-child(1) { animation-delay: 0.02s; }
+    #results.show .card:nth-child(2) { animation-delay: 0.06s; }
+    #results.show .card:nth-child(3) { animation-delay: 0.1s; }
+    #results.show .card:nth-child(4) { animation-delay: 0.14s; }
+    #results.show .card:nth-child(5) { animation-delay: 0.18s; }
+
+    .rank {
+      display: inline-grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-right: 8px;
+      flex-shrink: 0;
     }
 
     label {
@@ -206,6 +334,8 @@ HTML_PAGE = r"""<!DOCTYPE html>
     @media (max-width: 700px) {
       .row { grid-template-columns: 1fr; }
       header { flex-direction: column; }
+      .header-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+      .steps { grid-template-columns: 1fr; }
     }
 
     .hint {
@@ -424,12 +554,24 @@ HTML_PAGE = r"""<!DOCTYPE html>
           <p class="tagline">Paste the chaos. Lock three things you can actually finish.</p>
         </div>
       </div>
-      <div class="badge">AI · Amazon Bedrock</div>
+      <div class="header-right">
+        <div class="badge">AI · Amazon Bedrock Nova</div>
+        <a class="badge-link" href="https://github.com/shxkir/threetoday" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
     </header>
 
+    <div class="steps" aria-hidden="true">
+      <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Dump everything</strong>Messy notes are fine</div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Set real hours</strong>Energy + day context</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Lock three</strong>Code enforces the cap</div></div>
+    </div>
+
     <section class="card">
-      <label for="brainDump">Brain dump</label>
-      <textarea id="brainDump" placeholder="Dump everything on your mind — tasks, worries, half-started work, messages you need to send, meetings, side projects…
+      <div class="label-row">
+        <label for="brainDump" style="margin:0">Brain dump</label>
+        <span class="char-count"><span id="charCount">0</span> / 6000</span>
+      </div>
+      <textarea id="brainDump" maxlength="6000" placeholder="Dump everything on your mind — tasks, worries, half-started work, messages you need to send, meetings, side projects…
 
 Example:
 - finish client proposal draft
@@ -440,7 +582,7 @@ Example:
 - pay invoices
 - clean desk
 - maybe start that blog post"></textarea>
-      <p class="hint">Rough lists, messy notes, and incomplete sentences are fine. ThreeToday sorts the signal from the noise.</p>
+      <p class="hint">Rough lists, messy notes, and incomplete sentences are fine. ThreeToday sorts signal from noise.</p>
 
       <div class="row">
         <div>
@@ -467,12 +609,18 @@ Example:
         <button class="btn-secondary" id="copyBtn" onclick="copyMarkdown()" style="display:none">Copy as Markdown</button>
         <span class="status" id="status"></span>
       </div>
+      <p class="hint" style="margin-top:12px">Shortcut: <span class="kbd">⌘</span> / <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span></p>
     </section>
 
     <div id="results">
       <section class="card">
         <div class="summary" id="summary"></div>
-        <p id="rationale" class="item-body" style="margin-bottom: 8px"></p>
+        <div class="budget-bar" aria-hidden="true"><div class="budget-fill" id="budgetFill"></div></div>
+        <div class="budget-meta">
+          <span id="budgetLeft">—</span>
+          <span id="budgetModel">—</span>
+        </div>
+        <p id="rationale" class="item-body" style="margin-top: 12px"></p>
       </section>
 
       <section class="card">
@@ -509,7 +657,8 @@ Example:
     </div>
 
     <footer>
-      Built for the AWS Weekend Productivity Challenge · Powered by Amazon Bedrock Nova Lite
+      Built for the AWS Weekend Productivity Challenge · Amazon Bedrock Nova Lite ·
+      <a href="https://github.com/shxkir/threetoday" target="_blank" rel="noopener">Open source on GitHub</a>
     </footer>
   </div>
 
@@ -535,6 +684,7 @@ Example:
       document.getElementById('hours').value = 5;
       document.getElementById('energy').value = 'medium';
       document.getElementById('context').value = 'Need 2 client deliverables out today';
+      updateCharCount();
       setStatus('Sample loaded — hit Lock my three', 'ok');
     }
 
@@ -542,6 +692,11 @@ Example:
       const el = document.getElementById('status');
       el.textContent = msg || '';
       el.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    function updateCharCount() {
+      const n = (document.getElementById('brainDump').value || '').length;
+      document.getElementById('charCount').textContent = n;
     }
 
     function esc(s) {
@@ -601,6 +756,15 @@ Example:
       `;
       document.getElementById('rationale').textContent = data.rationale || '';
 
+      const used = Number(data.hours_allocated || 0);
+      const budget = Number(data.hours_budget || 0) || 1;
+      const pct = Math.min(100, Math.round((used / budget) * 100));
+      document.getElementById('budgetFill').style.width = pct + '%';
+      document.getElementById('budgetLeft').textContent =
+        used + 'h locked of ' + budget + 'h budget (' + pct + '%)';
+      document.getElementById('budgetModel').textContent =
+        (data.model || 'amazon.nova-lite-v1:0').replace('amazon.', '');
+
       const todayEl = document.getElementById('todayList');
       if (!data.today?.length) {
         todayEl.innerHTML = '<p class="empty">No finishable items fit your hours. Add more concrete tasks or free up time.</p>';
@@ -608,7 +772,7 @@ Example:
         todayEl.innerHTML = data.today.map((t, i) => `
           <div class="item">
             <div class="item-top">
-              <div class="item-title">${i + 1}. ${esc(t.title)}</div>
+              <div class="item-title" style="display:flex;align-items:center"><span class="rank">${i + 1}</span>${esc(t.title)}</div>
               <div class="item-meta">~${esc(t.hours)}h · ${esc(t.effort || 'medium')}</div>
             </div>
             <div class="item-body">${esc(t.why)}</div>
@@ -679,9 +843,12 @@ Example:
     }
 
     // Enter+Cmd/Ctrl to submit
-    document.getElementById('brainDump').addEventListener('keydown', (e) => {
+    const dump = document.getElementById('brainDump');
+    dump.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') runPlan();
     });
+    dump.addEventListener('input', updateCharCount);
+    updateCharCount();
   </script>
 </body>
 </html>

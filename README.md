@@ -14,7 +14,7 @@ Paste a messy brain dump. Set real hours + energy. Get **exactly three** finisha
 | --- | --- |
 | AI-powered productivity tool | Bedrock Nova Lite triages your dump |
 | At least one AWS service | Lambda, Function URL, Bedrock, IAM |
-| Working link or public repo | This repo + Function URL after deploy |
+| Working link **or** public repo | Challenge accepts **either** a live app URL **or** a public GitHub repo (we provide both) |
 | Article title | `Weekend Productivity Challenge: ThreeToday` |
 | Tag | `#productivity` |
 

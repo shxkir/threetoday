@@ -4,7 +4,8 @@
 >
 > - **Title (exact pattern):** `Weekend Productivity Challenge: ThreeToday`
 > - **Tag:** `#productivity` (add this tag in the article UI)
-> - **Link:** your Function URL after deploy **or** the public GitHub repo URL
+> - **Link:** Function URL after deploy **and/or** public GitHub repo (challenge allows **either**; both is stronger)
+> - **GitHub (already public):** https://github.com/shxkir/threetoday
 > - **Length:** this draft is well over 500 words — paste as-is, then add 2–3 screenshots
 > - **Deadline:** July 13, 2026 at 1:00 PM PT
 
