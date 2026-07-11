@@ -28,6 +28,15 @@ except ImportError:  # pragma: no cover
 # ---------------------------------------------------------------------------
 
 MODEL_ID = os.environ.get("MODEL_ID", "amazon.nova-lite-v1:0")
+# Prefer regional inference profile when available (APAC / global).
+MODEL_CANDIDATES = [
+    m.strip()
+    for m in os.environ.get(
+        "MODEL_CANDIDATES",
+        f"{MODEL_ID},apac.amazon.nova-lite-v1:0,apac.amazon.nova-micro-v1:0,amazon.nova-micro-v1:0,global.amazon.nova-2-lite-v1:0",
+    ).split(",")
+    if m.strip()
+]
 REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2"))
 MAX_BRAIN_DUMP_CHARS = 6000
 MAX_HOURS = 12.0
@@ -874,6 +883,78 @@ def _extract_json(text: str) -> dict[str, Any]:
     return json.loads(text[start : end + 1])
 
 
+def heuristic_candidates(
+    brain_dump: str, hours: float, energy: str, context: str
+) -> dict[str, Any]:
+    """
+    Built-in prioritizer used when Bedrock model quotas are not yet active
+    (common on brand-new accounts). Same enforce_three() path as Nova.
+    """
+    lines = [
+        ln.strip("-•* \t")
+        for ln in brain_dump.splitlines()
+        if ln.strip() and not ln.strip().startswith("#")
+    ]
+    if not lines:
+        parts = [p.strip() for p in brain_dump.replace("\n", ". ").split(".") if p.strip()]
+        lines = parts[:10]
+
+    kill_words = ("maybe", "eventually", "someday", "watch", "learn", "clean downloads", "browse")
+    high_words = ("rewrite", "build", "research", "proposal", "architect", "migrate")
+    impact_words = (
+        "client", "lead", "invoice", "deadline", "ship", "deploy", "fix", "reply", "send", "pay"
+    )
+
+    candidates = []
+    for i, line in enumerate(lines[:12]):
+        title = line[:100]
+        low = title.lower()
+        score = 82 - i * 4
+        if any(w in low for w in impact_words):
+            score += 12
+        if context and any(w in low for w in context.lower().split()[:6]):
+            score += 8
+        if any(w in low for w in kill_words):
+            score -= 35
+            bucket = "killed" if score < 48 else "parked"
+        elif score >= 70:
+            bucket = "today"
+        else:
+            bucket = "parked"
+        effort = "high" if any(w in low for w in high_words) else "medium"
+        if any(w in low for w in ("reply", "send", "email", "pay", "book")):
+            effort = "low"
+        hrs = 1.5 if effort == "high" else (0.5 if effort == "low" else 0.75)
+        nice = title[0].upper() + title[1:] if title else f"Task {i + 1}"
+        if effort == "low":
+            move = f"Open the thread/tool and complete the first send for: {nice[:50]}"
+        elif effort == "high":
+            move = f"Create a blank doc titled '{nice[:40]}' and write 3 bullets of the outcome"
+        else:
+            move = f"Block 25 minutes and start the first concrete step on: {nice[:50]}"
+        candidates.append(
+            {
+                "title": nice,
+                "hours": hrs,
+                "effort": effort,
+                "priority_score": score,
+                "bucket_suggestion": bucket,
+                "why": "Ranked from wording, position, and your day context.",
+                "first_move": move,
+            }
+        )
+
+    return {
+        "rationale": (
+            f"Energy={energy}, budget={hours}h"
+            + (f", context={context}" if context else "")
+            + ". Locked a realistic plan with hard max-three + hour budget."
+        ),
+        "candidates": candidates,
+        "_engine": "heuristic",
+    }
+
+
 def call_nova(brain_dump: str, hours: float, energy: str, context: str) -> dict[str, Any]:
     """Ask Nova Lite to extract + triage tasks. Code still enforces max-3 today."""
     system = (
@@ -921,43 +1002,56 @@ Rules:
 - Do NOT invent tasks that are not implied by the dump.
 """
 
-    # Nova Messages API via converse (preferred) with invoke_model fallback shape
     client = _bedrock()
-    try:
-        response = client.converse(
-            modelId=MODEL_ID,
-            system=[{"text": system}],
-            messages=[{"role": "user", "content": [{"text": user}]}],
-            inferenceConfig={"maxTokens": 2200, "temperature": 0.2},
-        )
-        text = response["output"]["message"]["content"][0]["text"]
-    except Exception:
-        # Fallback: raw invoke_model for Nova
-        body = {
-            "messages": [
-                {"role": "user", "content": [{"text": f"{system}\n\n{user}"}]}
-            ],
-            "inferenceConfig": {"max_new_tokens": 2200, "temperature": 0.2},
-        }
-        raw = client.invoke_model(
-            modelId=MODEL_ID,
-            contentType="application/json",
-            accept="application/json",
-            body=json.dumps(body),
-        )
-        payload = json.loads(raw["body"].read())
-        # Nova invoke_model response shapes vary; try common paths
-        text = (
-            payload.get("output", {})
-            .get("message", {})
-            .get("content", [{}])[0]
-            .get("text")
-            or payload.get("outputText")
-            or payload.get("generation")
-            or json.dumps(payload)
-        )
+    last_err: Exception | None = None
+    for model_id in MODEL_CANDIDATES:
+        try:
+            response = client.converse(
+                modelId=model_id,
+                system=[{"text": system}],
+                messages=[{"role": "user", "content": [{"text": user}]}],
+                inferenceConfig={"maxTokens": 2200, "temperature": 0.2},
+            )
+            text = response["output"]["message"]["content"][0]["text"]
+            out = _extract_json(text)
+            out["_engine"] = model_id
+            return out
+        except Exception as exc:  # try next model / path
+            last_err = exc
+            try:
+                body = {
+                    "messages": [
+                        {"role": "user", "content": [{"text": f"{system}\n\n{user}"}]}
+                    ],
+                    "inferenceConfig": {"max_new_tokens": 2200, "temperature": 0.2},
+                }
+                raw = client.invoke_model(
+                    modelId=model_id,
+                    contentType="application/json",
+                    accept="application/json",
+                    body=json.dumps(body),
+                )
+                payload = json.loads(raw["body"].read())
+                text = (
+                    payload.get("output", {})
+                    .get("message", {})
+                    .get("content", [{}])[0]
+                    .get("text")
+                    or payload.get("outputText")
+                    or payload.get("generation")
+                    or ""
+                )
+                if text:
+                    out = _extract_json(text)
+                    out["_engine"] = model_id
+                    return out
+            except Exception as exc2:
+                last_err = exc2
+                continue
 
-    return _extract_json(text)
+    # New accounts often have Bedrock on-demand quotas at 0 until fully activated.
+    print("BEDROCK_FALLBACK:", repr(last_err))
+    return heuristic_candidates(brain_dump, hours, energy, context)
 
 
 def enforce_three(model_out: dict[str, Any], hours: float, energy: str) -> dict[str, Any]:
@@ -1104,6 +1198,7 @@ def enforce_three(model_out: dict[str, Any], hours: float, energy: str) -> dict[
     else:
         rationale = rationale[:400]
 
+    engine = str(model_out.get("_engine") or MODEL_ID)
     return {
         "rationale": rationale,
         "hours_budget": hours,
@@ -1112,7 +1207,7 @@ def enforce_three(model_out: dict[str, Any], hours: float, energy: str) -> dict[
         "parked": parked,
         "killed": killed,
         "schedule": schedule,
-        "model": MODEL_ID,
+        "model": engine,
     }
 
 

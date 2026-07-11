@@ -154,7 +154,7 @@ If I had another day, I’d add Amazon Bedrock Guardrails for prompt-injection f
 https://github.com/shxkir/threetoday
 
 **Live app (Function URL):**  
-Pending AWS account verification (auto-deploy watcher running). Will be added as soon as Lambda unlocks.
+https://wqei6w7s64dcwymw7it2m7fcki0oektc.lambda-url.ap-southeast-2.on.aws/
 
 **Until then, the public repo fulfills the challenge “Link to App or Repo” requirement.**
 
