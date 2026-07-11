@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: ThreeToday — AI daily focus planner (AWS Weekend Productivity Challenge)
+
+Parameters:
+  ModelId:
+    Type: String
+    Default: amazon.nova-lite-v1:0
+    Description: Amazon Bedrock model ID (Nova Lite recommended for cost/speed)
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 60
+    MemorySize: 256
+    Architectures:
+      - arm64
+
+Resources:
+  ThreeTodayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: threetoday
+      CodeUri: ../src/
+      Handler: lambda_function.handler
+      Description: ThreeToday AI productivity app — GET UI, POST plan
+      Environment:
+        Variables:
+          MODEL_ID: !Ref ModelId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:Converse
+              Resource:
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${ModelId}
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-lite-v1:0
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-micro-v1:0
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins:
+            - "*"
+          AllowMethods:
+            - GET
+            - POST
+          AllowHeaders:
+            - content-type
+      Tags:
+        Project: ThreeToday
+        Challenge: WeekendProductivityChallenge
+
+Outputs:
+  FunctionUrl:
+    Description: Public URL for ThreeToday (open in browser)
+    Value: !GetAtt ThreeTodayFunctionUrl.FunctionUrl
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref ThreeTodayFunction
+  Region:
+    Description: Deployed region
+    Value: !Ref AWS::Region
