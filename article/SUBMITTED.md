@@ -1,25 +1,18 @@
 # Challenge submission — LIVE
 
-**Status:** Published successfully on AWS Builder Center  
-**Date:** 11 Jul 2026  
+**Status:** Published on AWS Builder Center + deployed on AWS Lambda  
+**Date:** 11 Jul 2026
 
-## Article URL
-https://builder.aws.com/content/3GM8xx5dzJ8Io1KFctXSncKKkkh/weekend-productivity-challenge-threetoday
+## Links
 
-## Required fields
-| Field | Value |
+| What | URL |
 | --- | --- |
-| Title | Weekend Productivity Challenge: ThreeToday |
-| GitHub | https://github.com/shxkir/threetoday |
-| Author | Ismaiel Shakir (@ismaiel) |
+| **Article** | https://builder.aws.com/content/3GM8xx5dzJ8Io1KFctXSncKKkkh/weekend-productivity-challenge-threetoday |
+| **Live app** | https://wqei6w7s64dcwymw7it2m7fcki0oektc.lambda-url.ap-southeast-2.on.aws/ |
+| **GitHub** | https://github.com/shxkir/threetoday |
 
-## Follow-ups (optional but recommended)
-1. Open article → Edit → **Choose tags** → add official **#productivity** topic chip (if not already linked)
-2. Fix body line breaks in the editor for cleaner formatting
-3. Attach screenshots from `screenshots/` (home + results + architecture)
-4. When AWS payment/identity verification completes, deploy Lambda and add Function URL
-
-## AWS account note
-Console shows incomplete signup / payment verification:
-https://portal.aws.amazon.com/billing/signup?type=resubscribe#/identityverification
-Fix payment info there to unlock Lambda/Bedrock deploy.
+## Notes
+- Title: `Weekend Productivity Challenge: ThreeToday`
+- Lambda + Function URL live in `ap-southeast-2`
+- Bedrock Nova on-demand quotas currently **0** on this new account; app falls back to built-in prioritizer until AWS activates model quotas (auto). Architecture and code are Bedrock-first.
+- Confirm `#productivity` tag on the article (Edit → Choose tags) if the chip is missing.
