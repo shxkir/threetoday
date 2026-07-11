@@ -299,6 +299,73 @@ HTML_PAGE = r"""<!DOCTYPE html>
       flex-shrink: 0;
     }
 
+    .engine-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      background: var(--bg-elevated);
+    }
+    .engine-chip.bedrock { color: var(--accent); border-color: var(--accent-border); background: var(--accent-dim); }
+    .engine-chip.heuristic { color: var(--warn); border-color: rgba(255,176,32,0.35); background: var(--warn-dim); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+      padding: 10px 12px;
+    }
+    .btn-ghost:hover { color: var(--text-muted); border-color: var(--border); }
+
+    .hero-quote {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, var(--accent-dim), transparent);
+      border-radius: 0 12px 12px 0;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+    .hero-quote strong { color: var(--text); }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-card);
+      border: 1px solid var(--accent-border);
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 50;
+      font-size: 0.9rem;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .item:hover { border-color: var(--border-strong); }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-secondary:hover { border-color: var(--accent-border); color: var(--text); }
+
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+      display: inline-block;
+    }
+
     label {
       display: block;
       font-size: 0.82rem;
@@ -564,15 +631,17 @@ HTML_PAGE = r"""<!DOCTYPE html>
         </div>
       </div>
       <div class="header-right">
-        <div class="badge">AI · Amazon Bedrock Nova</div>
+        <div class="badge"><span class="live-dot"></span>&nbsp; Live on AWS Lambda</div>
         <a class="badge-link" href="https://github.com/shxkir/threetoday" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </header>
 
+    <p class="hero-quote"><strong>Productivity is subtraction.</strong> Most tools help you add tasks. ThreeToday forces a finishable day: at most three outcomes inside the hours you actually have.</p>
+
     <div class="steps" aria-hidden="true">
       <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Dump everything</strong>Messy notes are fine</div></div>
       <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Set real hours</strong>Energy + day context</div></div>
-      <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Lock three</strong>Code enforces the cap</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Lock three</strong>Hard cap in code, not hope</div></div>
     </div>
 
     <section class="card">
@@ -591,7 +660,7 @@ Example:
 - pay invoices
 - clean desk
 - maybe start that blog post"></textarea>
-      <p class="hint">Rough lists, messy notes, and incomplete sentences are fine. ThreeToday sorts signal from noise.</p>
+      <p class="hint">Rough lists, messy notes, and incomplete sentences are fine. Signal rises; noise gets parked or cut.</p>
 
       <div class="row">
         <div>
@@ -615,14 +684,19 @@ Example:
       <div class="actions">
         <button class="btn-primary" id="planBtn" onclick="runPlan()">Lock my three</button>
         <button class="btn-secondary" id="sampleBtn" onclick="loadSample()">Load sample</button>
-        <button class="btn-secondary" id="copyBtn" onclick="copyMarkdown()" style="display:none">Copy as Markdown</button>
+        <button class="btn-secondary" id="clearBtn" onclick="clearForm()">Clear</button>
+        <button class="btn-secondary" id="copyBtn" onclick="copyMarkdown()" style="display:none">Copy Markdown</button>
         <span class="status" id="status"></span>
       </div>
-      <p class="hint" style="margin-top:12px">Shortcut: <span class="kbd">⌘</span> / <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span></p>
+      <p class="hint" style="margin-top:12px">Shortcut: <span class="kbd">⌘</span> / <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> · Powered by Amazon Bedrock when available</p>
     </section>
 
     <div id="results">
       <section class="card">
+        <div class="label-row" style="margin-bottom:12px">
+          <h2 style="font-size:1.05rem;margin:0">Your locked plan</h2>
+          <span class="engine-chip" id="engineChip">—</span>
+        </div>
         <div class="summary" id="summary"></div>
         <div class="budget-bar" aria-hidden="true"><div class="budget-fill" id="budgetFill"></div></div>
         <div class="budget-meta">
@@ -666,10 +740,11 @@ Example:
     </div>
 
     <footer>
-      Built for the AWS Weekend Productivity Challenge · Amazon Bedrock Nova Lite ·
-      <a href="https://github.com/shxkir/threetoday" target="_blank" rel="noopener">Open source on GitHub</a>
+      AWS Weekend Productivity Challenge · Lambda · Bedrock Nova ·
+      <a href="https://github.com/shxkir/threetoday" target="_blank" rel="noopener">Source on GitHub</a>
     </footer>
   </div>
+  <div class="toast" id="toast" role="status"></div>
 
   <script>
     let lastPlan = null;
@@ -695,12 +770,35 @@ Example:
       document.getElementById('context').value = 'Need 2 client deliverables out today';
       updateCharCount();
       setStatus('Sample loaded — hit Lock my three', 'ok');
+      toast('Sample loaded');
+    }
+
+    function clearForm() {
+      document.getElementById('brainDump').value = '';
+      document.getElementById('hours').value = 4;
+      document.getElementById('energy').value = 'medium';
+      document.getElementById('context').value = '';
+      document.getElementById('results').classList.remove('show');
+      document.getElementById('copyBtn').style.display = 'none';
+      lastPlan = null;
+      updateCharCount();
+      setStatus('');
+      toast('Cleared');
     }
 
     function setStatus(msg, kind) {
       const el = document.getElementById('status');
       el.textContent = msg || '';
       el.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    let toastTimer = null;
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
     }
 
     function updateCharCount() {
@@ -748,6 +846,7 @@ Example:
         renderPlan(data);
         document.getElementById('copyBtn').style.display = 'inline-block';
         setStatus('Plan locked ✓', 'ok');
+        toast('Plan locked — max three for today');
       } catch (err) {
         setStatus(err.message || String(err), 'error');
       } finally {
@@ -771,8 +870,19 @@ Example:
       document.getElementById('budgetFill').style.width = pct + '%';
       document.getElementById('budgetLeft').textContent =
         used + 'h locked of ' + budget + 'h budget (' + pct + '%)';
-      document.getElementById('budgetModel').textContent =
-        (data.model || 'amazon.nova-lite-v1:0').replace('amazon.', '');
+      const model = String(data.model || 'amazon.nova-lite-v1:0');
+      const isHeuristic = model === 'heuristic';
+      document.getElementById('budgetModel').textContent = isHeuristic
+        ? 'engine: smart prioritizer'
+        : model.replace('amazon.', '').replace('apac.', 'apac/');
+      const chip = document.getElementById('engineChip');
+      if (isHeuristic) {
+        chip.className = 'engine-chip heuristic';
+        chip.textContent = 'Prioritizer · max-3 enforced';
+      } else {
+        chip.className = 'engine-chip bedrock';
+        chip.textContent = 'Bedrock · ' + model.replace('amazon.', '').replace('apac.', '');
+      }
 
       const todayEl = document.getElementById('todayList');
       if (!data.today?.length) {
@@ -848,6 +958,7 @@ Example:
       (lastPlan.killed || []).forEach(t => lines.push(`- ${t.title} — ${t.why}`));
       navigator.clipboard.writeText(lines.join('\n')).then(() => {
         setStatus('Copied Markdown ✓', 'ok');
+        toast('Copied to clipboard');
       }).catch(() => setStatus('Copy failed', 'error'));
     }
 
@@ -899,39 +1010,65 @@ def heuristic_candidates(
         parts = [p.strip() for p in brain_dump.replace("\n", ". ").split(".") if p.strip()]
         lines = parts[:10]
 
-    kill_words = ("maybe", "eventually", "someday", "watch", "learn", "clean downloads", "browse")
-    high_words = ("rewrite", "build", "research", "proposal", "architect", "migrate")
-    impact_words = (
-        "client", "lead", "invoice", "deadline", "ship", "deploy", "fix", "reply", "send", "pay"
+    kill_words = (
+        "maybe", "eventually", "someday", "watch", "learn", "clean downloads",
+        "browse", "scroll", "netflix", "youtube", "might", "could try",
     )
+    high_words = (
+        "rewrite", "build", "research", "proposal", "architect", "migrate",
+        "design", "implement", "refactor", "write", "draft",
+    )
+    impact_words = (
+        "client", "lead", "invoice", "deadline", "ship", "deploy", "fix",
+        "reply", "send", "pay", "launch", "demo", "meeting", "customer",
+        "revenue", "urgent", "blocker", "production",
+    )
+    quick_words = ("reply", "send", "email", "pay", "book", "call", "text", "confirm")
+
+    ctx_tokens = set((context or "").lower().replace(",", " ").split())
 
     candidates = []
     for i, line in enumerate(lines[:12]):
         title = line[:100]
         low = title.lower()
-        score = 82 - i * 4
+        score = 84.0 - i * 3.5
         if any(w in low for w in impact_words):
-            score += 12
-        if context and any(w in low for w in context.lower().split()[:6]):
-            score += 8
+            score += 14
+        if ctx_tokens and any(tok in low for tok in ctx_tokens if len(tok) > 3):
+            score += 10
         if any(w in low for w in kill_words):
-            score -= 35
-            bucket = "killed" if score < 48 else "parked"
-        elif score >= 70:
+            score -= 38
+            bucket = "killed" if score < 50 else "parked"
+        elif score >= 72:
             bucket = "today"
         else:
             bucket = "parked"
+
         effort = "high" if any(w in low for w in high_words) else "medium"
-        if any(w in low for w in ("reply", "send", "email", "pay", "book")):
+        if any(w in low for w in quick_words):
             effort = "low"
+        if energy == "low" and effort == "high":
+            score -= 12
+        if energy == "high" and effort == "high":
+            score += 6
+
         hrs = 1.5 if effort == "high" else (0.5 if effort == "low" else 0.75)
         nice = title[0].upper() + title[1:] if title else f"Task {i + 1}"
         if effort == "low":
             move = f"Open the thread/tool and complete the first send for: {nice[:50]}"
+            why = "High leverage, low friction — easy win that moves the day forward."
         elif effort == "high":
             move = f"Create a blank doc titled '{nice[:40]}' and write 3 bullets of the outcome"
+            why = "Deep work candidate — only keep it if the impact justifies the hours."
         else:
             move = f"Block 25 minutes and start the first concrete step on: {nice[:50]}"
+            why = "Solid progress item that fits a normal energy day."
+
+        if bucket == "killed":
+            why = "Vague or low-ROI relative to your real constraints — cut on purpose."
+        elif bucket == "parked":
+            why = "Real work, but not in today's top three after hour budgeting."
+
         candidates.append(
             {
                 "title": nice,
@@ -939,16 +1076,16 @@ def heuristic_candidates(
                 "effort": effort,
                 "priority_score": score,
                 "bucket_suggestion": bucket,
-                "why": "Ranked from wording, position, and your day context.",
+                "why": why,
                 "first_move": move,
             }
         )
 
     return {
         "rationale": (
-            f"Energy={energy}, budget={hours}h"
-            + (f", context={context}" if context else "")
-            + ". Locked a realistic plan with hard max-three + hour budget."
+            f"With {hours:g}h and {energy} energy"
+            + (f" ({context})" if context else "")
+            + ", this plan undercommits on purpose: finish three outcomes, park the rest, kill the noise."
         ),
         "candidates": candidates,
         "_engine": "heuristic",
