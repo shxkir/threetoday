@@ -1,10 +1,12 @@
 # ThreeToday
 
-**Weekend Productivity Challenge** entry — an AI-powered daily focus planner on AWS.
+**AWS Weekend Productivity Challenge** entry — an AI-powered daily focus planner.
 
-Paste a messy brain dump. Set your real hours and energy. Get **exactly three** finishable outcomes, a first move for each, a focus schedule, plus parked and killed lists.
+Paste a messy brain dump. Set real hours + energy. Get **exactly three** finishable outcomes, a first move for each, a focus schedule, plus parked and killed lists.
 
-Built with **AWS Lambda** + **Lambda Function URL** + **Amazon Bedrock (Nova Lite)**.
+**Stack:** AWS Lambda · Lambda Function URL · Amazon Bedrock (Nova Lite) · IAM  
+**Repo:** https://github.com/shxkir/threetoday  
+**Region:** `ap-southeast-2`
 
 ## Challenge fit
 
@@ -12,67 +14,68 @@ Built with **AWS Lambda** + **Lambda Function URL** + **Amazon Bedrock (Nova Lit
 | --- | --- |
 | AI-powered productivity tool | Bedrock Nova Lite triages your dump |
 | At least one AWS service | Lambda, Function URL, Bedrock, IAM |
-| Working link or public repo | Function URL after deploy / this repo |
-| Article title pattern | `Weekend Productivity Challenge: ThreeToday` |
+| Working link or public repo | This repo + Function URL after deploy |
+| Article title | `Weekend Productivity Challenge: ThreeToday` |
 | Tag | `#productivity` |
 
-Deadline: **July 13, 2026, 1:00 PM PT** · Prize: first **50 qualifying** submissions → AWS Builder Jacket.
+Deadline: **July 13, 2026, 1:00 PM PT** · First **50 qualifying** → AWS Builder Jacket.
 
-## Quick start (local, no AWS)
+## Quick start (local)
 
 ```bash
-cd threetoday
 python3 local_server.py
-# open http://127.0.0.1:8080
-# uses mock AI — full UI + deterministic max-3 logic
+# → http://127.0.0.1:8080  (mock AI, full UI)
+make test
 ```
 
-Real Bedrock locally:
+Real Bedrock (after account verification + model access):
 
 ```bash
-export USE_BEDROCK=1
-export AWS_REGION=us-east-1
-# ensure AWS creds + Nova Lite model access in that region
-python3 local_server.py
+USE_BEDROCK=1 AWS_REGION=ap-southeast-2 python3 local_server.py
 ```
 
 ## Deploy to AWS
 
-### 1. Prerequisites
-
-- AWS account (you said yours is set up)
-- Enable **Amazon Nova Lite** under Amazon Bedrock → Model access (same region you deploy to, e.g. `us-east-1`)
-- Tools:
+> New accounts may show *“account is currently being verified”* for up to ~2 hours.
+> Until then Lambda/S3/Bedrock invoke stay blocked.
 
 ```bash
-brew install awscli aws-sam-cli
-aws configure
+# one-time tools
+brew install awscli
+aws login --region ap-southeast-2   # or configure access keys
+
+# auto-deploy when verification clears
+./infra/watch-and-deploy.sh
+
+# or deploy immediately once Lambda works
+./infra/deploy-cli.sh
 ```
 
-### 2. Deploy
+Enable **Amazon Nova Lite** in Bedrock → Model access (`ap-southeast-2`) if prompted.
 
-```bash
-cd threetoday/infra
-chmod +x deploy.sh
-./deploy.sh
-```
+## Publish the article
 
-Copy the **Function URL** from the output. Open it in a browser → **Lock my three**.
-
-### 3. Publish the article
-
-Use `article/ARTICLE.md` — paste into Builder Center, add screenshots, set tag `#productivity`, add your live URL + repo link.
+1. Open [AWS Builder Center](https://builder.aws.com) → new article  
+2. Title: **`Weekend Productivity Challenge: ThreeToday`**  
+3. Tag: **`#productivity`**  
+4. Paste `article/ARTICLE.md`  
+5. Add Function URL (from deploy) + this GitHub link  
+6. Attach screenshots from a local or live run  
+7. Publish before **July 13, 2026 1:00 PM PT**
 
 ## Project layout
 
 ```
 threetoday/
-├── src/lambda_function.py   # UI + API + Bedrock + enforce_three()
-├── src/requirements.txt
-├── infra/template.yaml      # SAM template
-├── infra/deploy.sh
-├── local_server.py          # local UI + mock/real AI
-├── article/ARTICLE.md       # ready-to-publish Builder Center article
+├── src/lambda_function.py     # UI + API + Bedrock + enforce_three()
+├── local_server.py            # local mock / real Bedrock
+├── tests/test_enforce.py      # deterministic planner tests
+├── infra/
+│   ├── template.yaml          # SAM
+│   ├── deploy.sh / deploy-cli.sh
+│   └── watch-and-deploy.sh    # poll verification → deploy
+├── article/ARTICLE.md
+├── docs/ARCHITECTURE.md
 └── README.md
 ```
 
@@ -83,17 +86,8 @@ GET  Function URL → HTML UI
 POST Function URL → validate → Bedrock Nova Lite → enforce_three() → JSON plan
 ```
 
-The model **suggests** candidates; **Python enforces** the hour budget and the hard cap of three today items.
-
-## Security notes (demo)
-
-- Function URL `AuthType: NONE` for easy challenge demos
-- Input size capped; Lambda timeout 60s; arm64 256 MB
-- IAM allows only Bedrock invoke/converse on the Nova model ARN
-- No datastore — nothing retained server-side
-
-For production: add Cognito or an API key, Bedrock Guardrails, and WAF on a custom domain.
+The model **suggests**; Python **enforces** max-three + hour budget. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## License
 
-MIT — built for the AWS Builder Center Weekend Productivity Challenge (July 2026).
+MIT — AWS Builder Center Weekend Productivity Challenge (July 2026).

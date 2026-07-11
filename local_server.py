@@ -36,33 +36,49 @@ def mock_model(brain_dump: str, hours: float, energy: str, context: str) -> dict
         if ln.strip() and not ln.strip().startswith("#")
     ]
     if not lines:
-        # sentence-ish split
         parts = [p.strip() for p in brain_dump.replace("\n", ". ").split(".") if p.strip()]
         lines = parts[:10]
+
+    kill_words = ("maybe", "eventually", "someday", "watch", "learn", "clean downloads", "browse")
+    high_words = ("rewrite", "build", "research", "proposal", "architect", "migrate")
+    impact_words = ("client", "lead", "invoice", "deadline", "ship", "deploy", "fix", "reply", "send")
 
     candidates = []
     for i, line in enumerate(lines[:12]):
         title = line[:100]
-        # crude scoring: earlier lines + verbs win
-        score = 80 - i * 5
-        if any(w in title.lower() for w in ("maybe", "eventually", "someday", "watch", "learn")):
-            score -= 30
-            bucket = "killed" if score < 45 else "parked"
-        elif i < 4:
+        low = title.lower()
+        score = 82 - i * 4
+        if any(w in low for w in impact_words):
+            score += 12
+        if context and any(w in low for w in context.lower().split()[:6]):
+            score += 8
+        if any(w in low for w in kill_words):
+            score -= 35
+            bucket = "killed" if score < 48 else "parked"
+        elif score >= 70:
             bucket = "today"
         else:
             bucket = "parked"
-        effort = "high" if any(w in title.lower() for w in ("rewrite", "build", "research", "proposal")) else "medium"
-        hrs = 1.5 if effort == "high" else 0.75
+        effort = "high" if any(w in low for w in high_words) else "medium"
+        if any(w in low for w in ("reply", "send", "email", "pay", "book")):
+            effort = "low"
+        hrs = 1.5 if effort == "high" else (0.5 if effort == "low" else 0.75)
+        nice = title[0].upper() + title[1:] if title else f"Task {i+1}"
+        if effort == "low":
+            move = f"Open the thread/tool and complete the first send for: {nice[:50]}"
+        elif effort == "high":
+            move = f"Create a blank doc titled '{nice[:40]}' and write 3 bullets of the outcome"
+        else:
+            move = f"Block 25 minutes and start the first concrete step on: {nice[:50]}"
         candidates.append(
             {
-                "title": title[0].upper() + title[1:] if title else f"Task {i+1}",
+                "title": nice,
                 "hours": hrs,
                 "effort": effort,
                 "priority_score": score,
                 "bucket_suggestion": bucket,
-                "why": "Inferred from position and wording in your dump (mock mode).",
-                "first_move": f"Open a doc and write a 3-bullet outline for: {title[:60]}",
+                "why": "Ranked from wording, position, and your day context (mock mode).",
+                "first_move": move,
             }
         )
 
@@ -70,7 +86,7 @@ def mock_model(brain_dump: str, hours: float, energy: str, context: str) -> dict
         "rationale": (
             f"[Mock AI] Energy={energy}, budget={hours}h"
             + (f", context={context}" if context else "")
-            + ". Deterministic code still enforces max 3 today."
+            + ". Code still enforces max 3 today + hour budget."
         ),
         "candidates": candidates,
     }

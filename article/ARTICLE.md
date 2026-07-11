@@ -149,13 +149,12 @@ If I had another day, I’d add Amazon Bedrock Guardrails for prompt-injection f
 
 ## Link to App or Repo
 
+**Source code (public repo):**  
+https://github.com/shxkir/threetoday
+
 **Live app (Function URL):**  
 `PASTE_YOUR_FUNCTION_URL_HERE`  
-*(After deploy, copy from `sam deploy` output or CloudFormation stack outputs → `FunctionUrl`.)*
-
-**Source code (public repo):**  
-`PASTE_YOUR_GITHUB_REPO_URL_HERE`  
-*(Push the `threetoday/` project and link it. Either live URL **or** public repo is required — both is stronger.)*
+*(Filled after AWS account verification completes and `infra/deploy-cli.sh` succeeds — CloudFormation/Lambda Function URL output.)*
 
 **How to run locally (mock AI):**
 ```bash

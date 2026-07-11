@@ -28,7 +28,7 @@ except ImportError:  # pragma: no cover
 # ---------------------------------------------------------------------------
 
 MODEL_ID = os.environ.get("MODEL_ID", "amazon.nova-lite-v1:0")
-REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "us-east-1"))
+REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2"))
 MAX_BRAIN_DUMP_CHARS = 6000
 MAX_HOURS = 12.0
 MIN_HOURS = 0.5
