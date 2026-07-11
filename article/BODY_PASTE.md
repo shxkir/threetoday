@@ -1,5 +1,6 @@
 # Weekend Productivity Challenge: ThreeToday
 
+
 > **Publish this on AWS Builder Center**
 >
 > - **Title (exact pattern):** `Weekend Productivity Challenge: ThreeToday`
@@ -154,9 +155,8 @@ If I had another day, I’d add Amazon Bedrock Guardrails for prompt-injection f
 https://github.com/shxkir/threetoday
 
 **Live app (Function URL):**  
-Pending AWS account verification (auto-deploy watcher running). Will be added as soon as Lambda unlocks.
-
-**Until then, the public repo fulfills the challenge “Link to App or Repo” requirement.**
+*(Deploy pending AWS account verification — will be added immediately after Lambda unlocks. Repo link satisfies the challenge link requirement in the meantime.)*  
+*(Filled after AWS account verification completes and `infra/deploy-cli.sh` succeeds — CloudFormation/Lambda Function URL output.)*
 
 **How to run locally (mock AI):**
 ```bash

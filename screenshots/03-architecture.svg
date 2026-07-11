@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420">
+  <rect width="960" height="420" fill="#0b0f14"/>
+  <text x="40" y="40" fill="#e8eef6" font-family="system-ui" font-size="20" font-weight="700">ThreeToday architecture</text>
+  <rect x="40" y="80" width="180" height="80" rx="12" fill="#161e28" stroke="#3dffa8"/>
+  <text x="130" y="125" text-anchor="middle" fill="#e8eef6" font-family="system-ui" font-size="14">Browser UI</text>
+  <text x="280" y="125" fill="#8b9bb0" font-family="system-ui" font-size="18">→</text>
+  <rect x="320" y="80" width="220" height="80" rx="12" fill="#161e28" stroke="#3dffa8"/>
+  <text x="430" y="115" text-anchor="middle" fill="#e8eef6" font-family="system-ui" font-size="14">AWS Lambda</text>
+  <text x="430" y="138" text-anchor="middle" fill="#8b9bb0" font-family="system-ui" font-size="12">Function URL · GET+POST</text>
+  <text x="560" y="125" fill="#8b9bb0" font-family="system-ui" font-size="18">→</text>
+  <rect x="600" y="80" width="220" height="80" rx="12" fill="#161e28" stroke="#7aa2ff"/>
+  <text x="710" y="115" text-anchor="middle" fill="#e8eef6" font-family="system-ui" font-size="14">Amazon Bedrock</text>
+  <text x="710" y="138" text-anchor="middle" fill="#8b9bb0" font-family="system-ui" font-size="12">Nova Lite</text>
+  <rect x="320" y="220" width="400" height="120" rx="12" fill="#161e28" stroke="#ffb020"/>
+  <text x="520" y="265" text-anchor="middle" fill="#e8eef6" font-family="system-ui" font-size="14">enforce_three() · deterministic</text>
+  <text x="520" y="295" text-anchor="middle" fill="#8b9bb0" font-family="system-ui" font-size="13">max 3 today · hour budget · schedule</text>
+  <text x="520" y="320" text-anchor="middle" fill="#5c6b7e" font-family="ui-monospace,monospace" font-size="12">AI suggests · code decides</text>
+  <text x="430" y="200" fill="#8b9bb0" font-family="system-ui" font-size="18">↓</text>
+</svg>
